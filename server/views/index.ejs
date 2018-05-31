@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<% include header %>
+
+    <body>
+        <% include navbar %>
+            <div id="chat">
+                <div class="jumbotron jumbotron-fluid">
+                    <div class="container">
+                        <h1 class="display-5">Tech chatter</h1>
+                        <p class="lead">Select which room you'd like to join below!!!</p>
+                    </div>
+                </div>
+                <div class="container-fluid">
+                    <div class="row">
+                        <ul class="list-group col">
+                            <div class="input-group mb-3">
+                                <input id="name-react" type="text" name="react" class="form-control" placeholder="Enter username" aria-label="Enter username"
+                                    aria-describedby="basic-addon2">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" name="react" onclick="joinClick('react')">Join React</button>
+                                </div>
+                            </div>
+                            <div class="input-group mb-3">
+                                <input id="name-node" type="text" name="node" class="form-control" placeholder="Enter username" aria-label="Enter username"
+                                    aria-describedby="basic-addon2">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" name="node" onclick="joinClick('node')">Join Node</button>
+                                </div>
+                            </div>
+                            <div class="input-group mb-3">
+                                <input id="name-css" type="text" name="css" class="form-control" placeholder="Enter username" aria-label="Enter username"
+                                    aria-describedby="basic-addon2">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" name="css" onclick="joinClick('css')">Join Css</button>
+                                </div>
+                            </div>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div id="chat-box" class="container-fluid d-none">
+                <div class="row">
+                    <ul id="messages"></ul>
+                </div>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="input-group">
+                            <input id="m" autocomplete="off" type="text" class="form-control" placeholder="Message..." aria-label="Message..." onkeypress="typing()">
+                            <span class="input-group-btn">
+                                <button id="send" class="btn btn-secondary" onclick="sendClick('send')">Send</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script>
+                const socket = io('/tech');
+                var room = "";
+
+                function joinClick(e) {
+                    room = e
+                    const user = document.getElementById('name-' + e).value;
+                    socket.emit('join', {
+                        room: room,
+                        user: user
+                    });
+
+                    document.getElementById("chat").classList.add("d-none");
+                    document.getElementById("chat-box").classList.remove("d-none");
+                    window.location.hash = "/" + room
+
+                };
+
+                function sendClick(e) {
+                    let msg = document.getElementById('m').value;
+                    socket.emit('message', {
+                        msg,
+                        room
+                    });
+                    document.getElementById('m').value = '';
+                };
+                function typing() {
+                    socket.emit('typing', {
+                        room
+                    });
+                };
+                socket.on('message', (msg) => {
+                    if(document.getElementById("typing")!= null){
+                        document.getElementById("typing").outerHTML = ""
+                    }
+                    var node = document.createElement("LI");
+                    var textnode = document.createTextNode(msg);
+                    node.appendChild(textnode);
+                    document.getElementById("messages").appendChild(node);
+                })
+                socket.on('typing', (msg) => {
+                    if(document.getElementById("typing")!= null){
+                        document.getElementById("typing").outerHTML = ""
+                    }
+                    var node = document.createElement("p");
+                    node.setAttribute("id", "typing");
+                    var textnode = document.createTextNode(msg);
+                    node.appendChild(textnode);
+                    document.getElementById("messages").appendChild(node);
+                })
+            </script>
+    </body>
+
+</html>
